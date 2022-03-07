@@ -1,0 +1,2 @@
+-r requirements.dev
+packagetrack @ https://os-pypi.s3-us-west-2.amazonaws.com/os_packagetrack/orangeshine-packagetrack-20191226.tar.gz
