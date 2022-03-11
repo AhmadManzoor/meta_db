@@ -5,39 +5,141 @@ from rest_framework import serializers
 
 from sugar.address.iso_country_codes import COUNTRY
 
-from api.serializers.brand import BrandSerializer
+from api.serializers.brand import BrandListSimpleSerializer
 from apps.models.style_detail_models import StyleModel
+from apps.models.brand import BrandAverageOrderReviewModel
+from meta_db.style.style_list_models import StyleListPopularModel , StyleListModel
+
 
 
 class StyleDetailSerializer(serializers.ModelSerializer):
+
+
+
+    product_id =  serializers.SerializerMethodField()
+    style_name =  serializers.SerializerMethodField()
+    popular_point_7 =  serializers.SerializerMethodField()
+    popular_point_14 =  serializers.SerializerMethodField()
+    popular_point_30 =  serializers.SerializerMethodField()
+    popular_point_60 =  serializers.SerializerMethodField()
+
+
+    five_star_percentage = serializers.SerializerMethodField()
+    four_star_percentage = serializers.SerializerMethodField()
+    three_star_percentage = serializers.SerializerMethodField()
+    two_star_percentage = serializers.SerializerMethodField()
+    one_star_percentage = serializers.SerializerMethodField()
+
+
     price = serializers.SerializerMethodField()
-    pre_order = serializers.SerializerMethodField()
+    sale_price = serializers.SerializerMethodField()
+    created_date =  serializers.SerializerMethodField()
+    modified_date =  serializers.SerializerMethodField()
+
+    
     colors = serializers.SerializerMethodField()
-    size_chart = serializers.SerializerMethodField()
-    grouped_items = serializers.SerializerMethodField()
-    badges = serializers.SerializerMethodField()
-    brand = serializers.SerializerMethodField()
+    group_id = serializers.SerializerMethodField()
+    # badges = serializers.SerializerMethodField()
+    is_pre_order = serializers.SerializerMethodField()
+    is_sale = serializers.SerializerMethodField()
+    is_plus_size = serializers.SerializerMethodField()
+
+    brand_id = serializers.SerializerMethodField()
+    brand_name = serializers.SerializerMethodField()
+    brand_web_name = serializers.SerializerMethodField()
+
     category = serializers.SerializerMethodField()
     is_restock = serializers.SerializerMethodField()
     restock_date = serializers.SerializerMethodField()
     brand_category = serializers.SerializerMethodField()
     originality = serializers.SerializerMethodField()
 
+
+    def  get_five_star_percentage(self,obj):
+        try :
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+        except Exception as e:
+            return 0
+
+
+    def  get_four_star_percentage(self,obj):
+        try :
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+        except Exception as e:
+            return 0
+
+
+    def  get_three_star_percentage(self,obj):
+
+        try :
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+        except Exception as e:
+            return 0
+
+
+    def  get_two_star_percentage(self,obj):
+        try :
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+        except Exception as e:
+            return 0
+
+            
+    def  get_one_star_percentage(self,obj):
+        try :
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+        except Exception as e:
+            return 0
+        
+
+    def get_popular_point_7 (self,obj):
+        try:
+            return StyleListPopularModel.objects.get(item_id=obj.id).popular_point_7
+        except:
+            return 0
+    def get_popular_point_14 (self,obj):
+            try:
+                return StyleListPopularModel.objects.get(item_id=obj.id).popular_point_14
+            except:
+                return 0
+
+    def get_popular_point_30 (self,obj):
+            try:
+                return StyleListPopularModel.objects.get(item_id=obj.id).popular_point_30
+            except:
+                return 0
+    def get_popular_point_60 (self,obj):
+            try:
+                return StyleListPopularModel.objects.get(item_id=obj.id).popular_point_7
+            except:
+                return 0
+
+    def get_product_id(self,obj):
+        return obj.id
+
+    def get_style_name(self,obj):
+        return obj.style_name
+
+    def get_created_date(self,obj):
+        return str(obj.created)
+
+    def get_modified_date(self,obj):
+        return str(obj.updated)
+        
+
     def get_price(self, obj):
         # TODO: ref.
-        return {
-            'regular_price': obj.price,
-            'price': obj.sale_price if obj.is_sale else obj.price,
-            'is_sale': obj.is_sale,
-            'sale_price': obj.sale_price,
-        }
+        return  float(obj.price)
 
-    def get_pre_order(self, obj):
+    def get_sale_price(self, obj):
+        return float(obj.sale_price),
         # TODO: ref.
-        return {
-            'available_date': obj.preorder_available_date,
-            'is_pre_order': obj.is_preorder,
-        }
+
+
 
     def get_colors_legacy(self, obj):
         return [{
@@ -65,114 +167,87 @@ class StyleDetailSerializer(serializers.ModelSerializer):
             c['color__name'],
         } for c in obj.colors_distinct]
 
-    def get_grouped_items(self, obj):
+    def get_group_id(self, obj):
         _grouped_items = []
         for _g in obj.grouped_items:
-            _shoe_size = None
-            if obj.is_shoes:
-                _shoe_size = []
-                for _s in _g.shoe_size.all():
-                    _shoe_size.append({
-                        'shoe_size': {
-                            'id': _s.shoe_size.id,
-                            'name': _s.shoe_size.name,
-                            'size': _s.shoe_size.shoe_size_chart_label,
-                            'pack': _s.shoe_size.shoe_size_chart,
-                        }
-                    })
-            _grouped_items.append({'id': _g.id, 'shoe_sizes': _shoe_size})
+            _grouped_items.append(_g.id)
         return _grouped_items
 
-    def get_size_chart(self, obj):
-        if obj.is_shoes:
-            _size_chart = []
-            for s in obj.shoe_size.all():
-                _size_chart.append({
-                    'id':
-                    s.shoe_size.id,
-                    'name':
-                    s.shoe_size.name,
-                    'pack':
-                    s.shoe_size.shoe_size_chart,
-                    'size':
-                    s.shoe_size.shoe_size_chart_label,
-                    'size_chart':
-                    OrderedDict(
-                        zip(s.shoe_size.shoe_size_chart_label,
-                            s.shoe_size.shoe_size_chart)),
-                    'description':
-                    s.shoe_size.description,
-                    'total':
-                    sum(s.shoe_size.shoe_size_chart),
-                })
-        else:
-            try:
-                pack_quantity_list = obj.pack.qty_list
-            except:
-                pack_quantity_list = []
-            try:
-                size_chart_list = obj.size_chart.size_list
-            except:
-                size_chart_list = []
+    # def get_size_chart(self, obj):
+    #     if obj.is_shoes:
+    #         _size_chart = []
+    #         for s in obj.shoe_size.all():
+    #             _size_chart.append({
+    #                 'id':
+    #                 s.shoe_size.id,
+    #                 'name':
+    #                 s.shoe_size.name,
+    #                 'pack':
+    #                 s.shoe_size.shoe_size_chart,
+    #                 'size':
+    #                 s.shoe_size.shoe_size_chart_label,
+    #                 'size_chart':
+    #                 OrderedDict(
+    #                     zip(s.shoe_size.shoe_size_chart_label,
+    #                         s.shoe_size.shoe_size_chart)),
+    #                 'description':
+    #                 s.shoe_size.description,
+    #                 'total':
+    #                 sum(s.shoe_size.shoe_size_chart),
+    #             })
+    #     else:
+    #         try:
+    #             pack_quantity_list = obj.pack.qty_list
+    #         except:
+    #             pack_quantity_list = []
+    #         try:
+    #             size_chart_list = obj.size_chart.size_list
+    #         except:
+    #             size_chart_list = []
 
-            _size_chart = {
-                'pack': pack_quantity_list,
-                'size': size_chart_list,
-                'size_chart':
-                OrderedDict(zip(size_chart_list, pack_quantity_list)),
-                'total': sum(pack_quantity_list),
-            }
-        return _size_chart
+    #         _size_chart = {
+    #             'pack': pack_quantity_list,
+    #             'size': size_chart_list,
+    #             'size_chart':
+    #             OrderedDict(zip(size_chart_list, pack_quantity_list)),
+    #             'total': sum(pack_quantity_list),
+    #         }
+    #     return _size_chart
 
-    def get_badges(self, obj):
-        return {
-            'pre_order': obj.is_preorder,
-            'sale': obj.is_sale,
-            'plus': obj.is_plus,
-        }
+    def get_is_pre_order(self, obj):
+        return  obj.is_preorder,
 
-    def get_brand(self, obj):
-        return BrandSerializer(obj.brand).data
+    def get_is_sale(self, obj):
+            return  obj.is_sale,
+
+    def get_is_plus_size(self, obj):
+            return  obj.is_plus,
+
+    def get_brand_id(self, obj):
+        branddata= BrandListSimpleSerializer(obj.brand).data
+        return branddata['id']
+
+    def get_brand_name(self, obj):
+        branddata= BrandListSimpleSerializer(obj.brand).data
+        return branddata['name']
+
+    def get_brand_web_name(self, obj):
+        branddata= BrandListSimpleSerializer(obj.brand).data
+        return branddata['web_name']
 
     def get_category(self, obj):
-        ret_dict = dict(master='', sub='')
-        try:
-            ret_dict['master'] = {
-                'id':
-                obj.os_category_master_id,
-                'name':
-                obj.os_category_master.name,
-                'slug_name':
-                obj.os_category_master.slug_name,
-                'display_group_order':
-                obj.os_category_master.display_group_order_id
-            }
-        except:
-            pass
+        try : 
 
-        try:
-            ret_dict['sub'] = {
-                'name':
-                obj.os_category_sub.name if obj.os_category_sub.name else '',
-                'slug_name':
-                obj.os_category_sub.slug_name
-                if obj.os_category_sub.slug_name else ''
-            }
-        except:
-            pass
+            return obj.os_category_master.name
+        except Exception as e:
+            return ""
 
-        return ret_dict
+        
 
     def get_brand_category(self, obj):
-        try:
-            brand_category = {
-                'id': obj.brand_category_id if obj.brand_category_id else "",
-                'name':
-                obj.brand_category.name if obj.brand_category.name else ""
-            }
-        except Exception:
-            brand_category = {'id': "", 'name': ""}
-        return brand_category
+       return  obj.brand_category.name if obj.brand_category.name else "",
+               
+       
 
     def get_originality(self, obj):
         return COUNTRY.get(obj.made_in, str())
@@ -185,28 +260,42 @@ class StyleDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
-            'id',
+            'product_id',
             'style_name',
             'brand_style_number',
             'description',
             'is_active',
-            'created',
-            'updated',
+            'created_date',
+            'modified_date',
             'pictures',
             'is_shoes',
-            'pre_order',
             'price',
+            'sale_price',
             'colors',
-            'size_chart',
-            'badges',
-            'grouped_items',
-            'brand',
+            'is_plus_size',
+            'is_sale',
+            'is_pre_order',
+            'group_id',
+            'brand_id',
+            'brand_name',
+            'brand_web_name',
             'category',
             'brand_category',
             'originality',
             'is_restock',
             'restock_date',
             'is_broken_pack',
+            'popular_point_7',
+            'popular_point_14',
+            'popular_point_30',
+            'popular_point_60',
+            'five_star_percentage',
+            'four_star_percentage',
+            'three_star_percentage',
+            'two_star_percentage',
+            'one_star_percentage'
+
+
         )
         model = StyleModel
         read_only_fields = fields

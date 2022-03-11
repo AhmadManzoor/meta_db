@@ -133,7 +133,7 @@ if __name__ == '__main__':
     # 2021-07: 78604
     # 2021-08: 65549 (current)
     """
-    time_from = "20000101000000"
+    time_from = "20210801000000"
     time_to   = "20220201000000"
 
     action_type = "recreate"

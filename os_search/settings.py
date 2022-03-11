@@ -68,29 +68,37 @@ WSGI_APPLICATION = "os_search.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "HOST": '10.45.79.226',
-#         "USER": config("DATABASE_USER"),
-#         "NAME": config("DATABASE_NAME"),
-#         "PASSWORD": config("DATABASE_PASSWORD"),
-#     },
-# }
+if config("ENV") == 'dev' :
 
-# pymysql.version_info = (1, 4, 2, "final", 0)
-# pymysql.install_as_MySQLdb()
-
-DATABASES = { 
-    'default' :
-    {
-        'ENGINE' : 'django.db.backends.mysql',
-        'NAME' : 'b2b',
-        'USER' : 'mysql',
-        'PASSWORD' : '123',
-        "init_command": "SET foreign_key_checks = 0;"
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "HOST": '10.45.79.226',
+            "USER": config("DATABASE_USER"),
+            "NAME": config("DATABASE_NAME"),
+            "PASSWORD": config("DATABASE_PASSWORD"),
+        },
     }
-}
+
+    pymysql.version_info = (1, 4, 2, "final", 0)
+    pymysql.install_as_MySQLdb()
+
+else:
+
+    DATABASES = { 
+        'default' :
+        {
+            'ENGINE' : 'django.db.backends.mysql',
+            'NAME' : 'b2b',
+            'USER' : 'mysql',
+            'PASSWORD' : '123',
+            "init_command": "SET foreign_key_checks = 0;"
+        }
+    }
+
+
+############################need to be set##############    
+OS_MEDIA_URL = 'https://orangeshine.com/'          
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators

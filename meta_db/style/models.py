@@ -731,7 +731,7 @@ class AbstractProductModel(models.Model):
                                          blank=True,
                                          default=False)
     min_broken_pack_order_qty = models.SmallIntegerField(
-        db_column='min_broken_pack_order_qty ',
+        db_column='min_broken_pack_order_qty',
         default=0,
         help_text='min qty for broken pack')
     objects = AbstractProductModelManager()
@@ -1144,3 +1144,4 @@ class ColorSelectedModel(AbstractColorSelectedModel):
 
     class Meta(AbstractColorSelectedModel.Meta):
         managed = False
+

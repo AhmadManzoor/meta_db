@@ -25,3 +25,5 @@ trackingnumbers.txt
 .vscode
 .settings
 .env
+
+*.log
