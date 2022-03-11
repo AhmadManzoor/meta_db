@@ -1,6 +1,15 @@
 import os
 import sys
 import django
+import logging
+
+from datetime import datetime, timedelta
+
+date_strftime_format = "%d-%b-%y %H:%M:%S"
+message_format = "%(asctime)s - %(levelname)s - %(message)s"
+
+logging.basicConfig(format= message_format, datefmt= date_strftime_format, filename='Initialmigration_products.log',level=logging.DEBUG)
+
 sys.path.append("..")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "os_search.settings")
 django.setup()
@@ -12,9 +21,8 @@ from api.serializers.detail import StyleDetailSerializer
 
 from elasticsearch_dsl import Q
 from search.handler import SearchHandler
+from handler import post_request_for_elastic
 
-
-from datetime import datetime, timedelta
 
 
 def initialize_es():
@@ -41,11 +49,13 @@ def main(time_from_str, time_to_str, action_type="update"):
     print("[main]")
 
     site = "os"
-    _hdr = SearchHandler(site=site)
+    # _hdr = SearchHandler(site=site)
 
     time_from = datetime.strptime(time_from_str, "%Y%m%d%H%M%S")
     time_to = datetime.strptime(time_to_str, "%Y%m%d%H%M%S")
-    print("[main] %s <= t < %s"% (time_from, time_to))
+    # print("[main] %s <= t < %s"% (time_from, time_to))
+    logging.info("Import started %s <= t < %s"% (time_from, time_to))
+
 
     if action_type == "recreate":
         initialize_es()
@@ -56,7 +66,8 @@ def main(time_from_str, time_to_str, action_type="update"):
         _styles = StyleModel.objects.filter(
             origin_date__gte=time_from, origin_date__lt=time_to
         ).order_by('origin_date')
-        print("[main] _styles (create): %d" % _styles.count())
+        # print("[main] _styles (create): %d" % _styles.count())
+        logging.info("[main] _styles (create): %d" % _styles.count())
     else:
         # _styles = getattr(StyleModel.objects, site).filter(
         #    updated_date__gte=time_from, updated_date__lt=time_to
@@ -78,18 +89,22 @@ def main(time_from_str, time_to_str, action_type="update"):
             if s:
                 try:
                     s.delete()
-                    print("[DELETED][%s] %s\t%s\t%s" % (idx, s.id, s.created_date, getattr(s, 'updated_date', '-')))
+                    print("[DELETED][%s] %s\t%s\t%s" % (idx, s.id, s.created, getattr(s, 'updated', '-')))
                 except:
                     print("[DELETED][%s] %s\t%s\t%s (skipping)" % (
-                    idx, s.id, s.created_date, getattr(s, 'updated_date', '-')))
+                    idx, s.id, s.created, getattr(s, 'updated', '-')))
 
     for idx, s in enumerate(_styles):
         try:
-            _hdr.create_or_update(s)
-            print("[CREATE/UPDATED][%s] %s\t%s\t%s" % (idx, s.id, s.created_date, getattr(s, 'updated_date', '-')))
-        except:
-            print("[CREATE/UPDATED][%s] %s\t%s\t%s (skipping)" % (
-            idx, s.id, s.created_date, getattr(s, 'updated_date', '-')))
+            #_hdr.create_or_update(s)
+            data = StyleDetailSerializer(s).data
+            print(data)
+            post_request_for_elastic(logging, 'stg-product',data)
+            logging.info("[CREATE/UPDATED][%s] %s\t%s\t%s" % (idx, s.id, s.created, getattr(s, 'updated', '-')))
+        except Exception as e:
+            print(e)
+            logging.warning("[CREATE/UPDATED][%s] %s\t%s\t%s\t %s(skipping)" % (idx, s.id, s.created, getattr(s, 'updated', '-'),str(e)))
+            # logging.WARNING(str(e))
             pass
 
 
