@@ -2,6 +2,8 @@ import os
 import sys
 import django
 import logging
+import csv
+
 
 from datetime import datetime, timedelta
 
@@ -23,6 +25,8 @@ from elasticsearch_dsl import Q
 from search.handler import SearchHandler
 from handler import post_request_for_elastic
 
+f = open('nocategory.csv', 'w')
+writer = csv.writer(f)
 
 
 def initialize_es():
@@ -98,11 +102,14 @@ def main(time_from_str, time_to_str, action_type="update"):
         try:
             #_hdr.create_or_update(s)
             data = StyleDetailSerializer(s).data
-            print(data)
-            post_request_for_elastic(logging, 'stg-product',data)
-            logging.info("[CREATE/UPDATED][%s] %s\t%s\t%s" % (idx, s.id, s.created, getattr(s, 'updated', '-')))
+            if data['category'] != "":
+                post_request_for_elastic(logging, 'stg-product',data)
+                logging.info("[CREATE/UPDATED][%s] %s\t%s\t%s" % (idx, s.id, s.created, getattr(s, 'updated', '-')))
+            else:
+                writer.writerow(data['product_id'])
+
         except Exception as e:
-            print(e)
+            # print(e)
             logging.warning("[CREATE/UPDATED][%s] %s\t%s\t%s\t %s(skipping)" % (idx, s.id, s.created, getattr(s, 'updated', '-'),str(e)))
             # logging.WARNING(str(e))
             pass

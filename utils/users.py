@@ -22,6 +22,7 @@ from api.serializers.user import UserSerializer
 
 
 def main(time_from_str, time_to_str, action_type="update"):
+    logging.info("Import of users started")
     time_from = datetime.strptime(time_from_str, "%Y%m%d%H%M%S")
     time_to = datetime.strptime(time_to_str, "%Y%m%d%H%M%S")
     logging.info("[main] %s <= t < %s"% (time_from, time_to))
