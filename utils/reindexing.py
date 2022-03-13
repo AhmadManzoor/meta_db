@@ -30,7 +30,6 @@ from handler import post_request_for_elastic
 f = open('nocategory.csv', 'w')
 writer = csv.writer(f)
 
-nobranddata =0
 def initialize_es():
     ##################################################
     # instead call this:
@@ -99,15 +98,15 @@ def main(time_from_str, time_to_str, action_type="update"):
                 except:
                     print("[DELETED][%s] %s\t%s\t%s (skipping)" % (
                     idx, s.id, s.created, getattr(s, 'updated', '-')))
-
+    nobranddata = 0
     for idx, s in enumerate(_styles):
         try:
             #_hdr.create_or_update(s)
             try:
                 BrandListSimpleSerializer(s.brand).data
-                logging.error("no brand data against {}".format(s.id))
             except Exception as e:
                 nobranddata+=1
+                logging.error("no brand data against {}".format(s.id))
                 continue
             data = StyleDetailSerializer(s).data
             if data['category'] != "":
@@ -122,7 +121,6 @@ def main(time_from_str, time_to_str, action_type="update"):
             logging.warning("[CREATE/UPDATED][%s] %s\t%s\t%s\t %s(skipping)" % (idx, s.id, s.created, getattr(s, 'updated', '-'),str(e)))
             # logging.WARNING(str(e))
             pass
-    print(nobranddata)
 
 
 if __name__ == '__main__':
@@ -148,4 +146,6 @@ if __name__ == '__main__':
 
     action_type = "recreate"
     # action_type = "update"
+    nobranddata =0
+
     main(time_from, time_to, action_type)
