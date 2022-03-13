@@ -1,7 +1,5 @@
 from ast import Not
-from asyncio.windows_events import NULL
 from collections import OrderedDict
-from curses.ascii import NUL
 
 from django.conf import settings
 from rest_framework import serializers
@@ -150,20 +148,6 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         # TODO: ref.
 
 
-
-    def get_colors_legacy(self, obj):
-        return [{
-            'item_id':
-            c.item_id,
-            'color_id':
-            c.color_id,
-            'image':
-            '{}/{}'.format(settings.BASE_COLOR_SWATCH_URL, c.image_link)
-            if c.image_link else None,
-            'name':
-            c.color.name,
-        } for c in obj.colors_distinct]
-
     def get_colors(self, obj):
         try:
 
@@ -182,10 +166,14 @@ class StyleDetailSerializer(serializers.ModelSerializer):
             return []
 
     def get_group_id(self, obj):
-        _grouped_items = []
-        for _g in obj.grouped_items:
-            _grouped_items.append(_g.id)
-        return _grouped_items
+        try:
+
+            _grouped_items = []
+            for _g in obj.grouped_items:
+                _grouped_items.append(_g.id)
+            return _grouped_items
+        except Exception as e:
+            return []
 
     # def get_size_chart(self, obj):
     #     if obj.is_shoes:

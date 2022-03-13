@@ -3,7 +3,7 @@ import sys
 import django
 import logging
 import csv
-
+import traceback
 
 from datetime import datetime, timedelta
 
@@ -110,6 +110,7 @@ def main(time_from_str, time_to_str, action_type="update"):
 
         except Exception as e:
             # print(e)
+            print(traceback.print_exc())
             logging.warning("[CREATE/UPDATED][%s] %s\t%s\t%s\t %s(skipping)" % (idx, s.id, s.created, getattr(s, 'updated', '-'),str(e)))
             # logging.WARNING(str(e))
             pass
