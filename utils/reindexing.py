@@ -98,22 +98,22 @@ def main(time_from_str, time_to_str, action_type="update"):
                 except:
                     print("[DELETED][%s] %s\t%s\t%s (skipping)" % (
                     idx, s.id, s.created, getattr(s, 'updated', '-')))
-    nobranddata = 0
     for idx, s in enumerate(_styles):
         try:
             #_hdr.create_or_update(s)
             try:
                 BrandListSimpleSerializer(s.brand).data
             except Exception as e:
-                nobranddata+=1
                 logging.error("no brand data against {}".format(s.id))
                 continue
             data = StyleDetailSerializer(s).data
             if data['category'] != "":
-                post_request_for_elastic(logging, 'os-product',data)
+                # post_request_for_elastic(logging, 'os-product',data)
                 logging.info("[CREATE/UPDATED][%s] %s\t%s\t%s" % (idx, s.id, s.created, getattr(s, 'updated', '-')))
             else:
                 writer.writerow(data['product_id'])
+                logging.error("no category for {}".format(s.id))
+
 
         except Exception as e:
             # print(e)
@@ -141,11 +141,10 @@ if __name__ == '__main__':
     # 2021-07: 78604
     # 2021-08: 65549 (current)
     """
-    time_from = "20000801000000"
+    time_from = "20210801000000"
     time_to   = "20220201000000"
 
     action_type = "recreate"
     # action_type = "update"
-    nobranddata =0
 
     main(time_from, time_to, action_type)

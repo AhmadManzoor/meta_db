@@ -10,14 +10,9 @@ from api.serializers.brand import BrandListSimpleSerializer
 from apps.models.style_detail_models import StyleModel
 from apps.models.brand import BrandAverageOrderReviewModel
 from meta_db.style.style_list_models import StyleListPopularModel 
-nodate = 0
-noname = 0
-nocategory = 0
-nowebname =0
+
 
 class StyleDetailSerializer(serializers.ModelSerializer):
-
-
 
     product_id =  serializers.SerializerMethodField()
     style_name =  serializers.SerializerMethodField()
@@ -70,7 +65,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     def  get_four_star_percentage(self,obj):
         try :
             branddata= BrandListSimpleSerializer(obj.brand).data
-            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).four_star_percentage
         except Exception as e:
             return 0
 
@@ -79,7 +74,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
 
         try :
             branddata= BrandListSimpleSerializer(obj.brand).data
-            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).three_star_percentage
         except Exception as e:
             return 0
 
@@ -87,7 +82,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     def  get_two_star_percentage(self,obj):
         try :
             branddata= BrandListSimpleSerializer(obj.brand).data
-            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).two_star_percentage
         except Exception as e:
             return 0
 
@@ -95,7 +90,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     def  get_one_star_percentage(self,obj):
         try :
             branddata= BrandListSimpleSerializer(obj.brand).data
-            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).five_star_percentage
+            return BrandAverageOrderReviewModel.objects.get(vendor_id_id =branddata['id']).one_star_percentage
         except Exception as e:
             return 0
         
@@ -132,7 +127,6 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         try:
             return str(obj.created)
         except Exception as e:
-            nodate+=1
             return ""
 
     def get_modified_date(self,obj):
@@ -236,10 +230,8 @@ class StyleDetailSerializer(serializers.ModelSerializer):
             if branddata['name'] is not None:
                 return branddata['name']
             else :
-                noname +=1
                 return "NOBRANDNAME"
         except :
-            noname +=1 
             return "NOBRANDNAME"
 
     def get_brand_web_name(self, obj):
@@ -248,17 +240,14 @@ class StyleDetailSerializer(serializers.ModelSerializer):
             if branddata['web_name'] is not None:
                 return branddata['web_name']
             else :
-                nowebname+=1
                 return "NOBRANDWEBNAME"
         except:
-            nowebname+=1
             return "NOBRANDWEBNAME"
 
     def get_category(self, obj):
         try : 
             return obj.os_category_master.name
         except Exception as e:
-            nocategory+=1
             return ""
 
         
@@ -319,7 +308,3 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         model = StyleModel
         read_only_fields = fields
 
-print(nodate ,
-noname ,
-nowebname,
-nocategory)
