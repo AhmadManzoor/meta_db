@@ -4,12 +4,11 @@ from django.conf import settings
 from rest_framework import serializers
 
 from sugar.address.iso_country_codes import COUNTRY
-
+import logging
 from api.serializers.brand import BrandListSimpleSerializer
 from apps.models.style_detail_models import StyleModel
 from apps.models.brand import BrandAverageOrderReviewModel
-from meta_db.style.style_list_models import StyleListPopularModel , StyleListModel
-
+from meta_db.style.style_list_models import StyleListPopularModel 
 
 
 class StyleDetailSerializer(serializers.ModelSerializer):
@@ -40,6 +39,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     colors = serializers.SerializerMethodField()
     group_id = serializers.SerializerMethodField()
     # badges = serializers.SerializerMethodField()
+    style_number = serializers.CharField(source='brand_style_number')
     is_pre_order = serializers.SerializerMethodField()
     is_sale = serializers.SerializerMethodField()
     is_plus_size = serializers.SerializerMethodField()
@@ -155,17 +155,21 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         } for c in obj.colors_distinct]
 
     def get_colors(self, obj):
-        return [{
-            'item_id':
-            c['item_id'],
-            'color_id':
-            c['color_id'],
-            'image':
-            '{}/{}'.format(settings.BASE_COLOR_SWATCH_URL, c['image_link'])
-            if c['image_link'] else None,
-            'name':
-            c['color__name'],
-        } for c in obj.colors_distinct]
+        try:
+
+            return [{
+                'item_id':
+                c['item_id'],
+                'color_id':
+                c['color_id'],
+                'image':
+                '{}/{}'.format(settings.BASE_COLOR_SWATCH_URL, c['image_link'])
+                if c['image_link'] else None,
+                'name':
+                c['color__name'],
+            } for c in obj.colors_distinct]
+        except Exception as e:
+            return []
 
     def get_group_id(self, obj):
         _grouped_items = []
@@ -215,6 +219,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     #     return _size_chart
 
     def get_is_pre_order(self, obj):
+        print (obj.is_preorder)
         return  obj.is_preorder,
 
     def get_is_sale(self, obj):
@@ -228,16 +233,21 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         return branddata['id']
 
     def get_brand_name(self, obj):
-        branddata= BrandListSimpleSerializer(obj.brand).data
-        return branddata['name']
+        try :
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return branddata['name']
+        except : 
+            return "NOBRANDNAME"
 
     def get_brand_web_name(self, obj):
-        branddata= BrandListSimpleSerializer(obj.brand).data
-        return branddata['web_name']
+        try:
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return branddata['web_name']
+        except:
+            return "NOBRANDWEBNAME"
 
     def get_category(self, obj):
         try : 
-
             return obj.os_category_master.name
         except Exception as e:
             return ""
@@ -262,7 +272,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         fields = (
             'product_id',
             'style_name',
-            'brand_style_number',
+            'style_number',
             'description',
             'is_active',
             'created_date',
