@@ -1,4 +1,7 @@
+from ast import Not
+from asyncio.windows_events import NULL
 from collections import OrderedDict
+from curses.ascii import NUL
 
 from django.conf import settings
 from rest_framework import serializers
@@ -9,7 +12,10 @@ from api.serializers.brand import BrandListSimpleSerializer
 from apps.models.style_detail_models import StyleModel
 from apps.models.brand import BrandAverageOrderReviewModel
 from meta_db.style.style_list_models import StyleListPopularModel 
-
+nodate = 0
+noname = 0
+nocategory = 0
+nowebname =0
 
 class StyleDetailSerializer(serializers.ModelSerializer):
 
@@ -125,7 +131,11 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         return obj.style_name
 
     def get_created_date(self,obj):
-        return str(obj.created)
+        try:
+            return str(obj.created)
+        except Exception as e:
+            nodate+=1
+            return ""
 
     def get_modified_date(self,obj):
         return str(obj.updated)
@@ -219,14 +229,14 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     #     return _size_chart
 
     def get_is_pre_order(self, obj):
-        print (obj.is_preorder)
+
         return  obj.is_preorder,
 
     def get_is_sale(self, obj):
-            return  obj.is_sale,
+        return  obj.is_sale,
 
     def get_is_plus_size(self, obj):
-            return  obj.is_plus,
+        return  obj.is_plus,
 
     def get_brand_id(self, obj):
         branddata= BrandListSimpleSerializer(obj.brand).data
@@ -235,21 +245,32 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     def get_brand_name(self, obj):
         try :
             branddata= BrandListSimpleSerializer(obj.brand).data
-            return branddata['name']
-        except : 
+            if branddata['name'] is not None:
+                return branddata['name']
+            else :
+                noname +=1
+                return "NOBRANDNAME"
+        except :
+            noname +=1 
             return "NOBRANDNAME"
 
     def get_brand_web_name(self, obj):
         try:
             branddata= BrandListSimpleSerializer(obj.brand).data
-            return branddata['web_name']
+            if branddata['web_name'] is not None:
+                return branddata['web_name']
+            else :
+                nowebname+=1
+                return "NOBRANDWEBNAME"
         except:
+            nowebname+=1
             return "NOBRANDWEBNAME"
 
     def get_category(self, obj):
         try : 
             return obj.os_category_master.name
         except Exception as e:
+            nocategory+=1
             return ""
 
         
@@ -309,3 +330,8 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         )
         model = StyleModel
         read_only_fields = fields
+
+print(nodate ,
+noname ,
+nowebname,
+nocategory)
