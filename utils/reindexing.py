@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 date_strftime_format = "%d-%b-%y %H:%M:%S"
 message_format = "%(asctime)s - %(levelname)s - %(message)s"
 
-logging.basicConfig(format= message_format, datefmt= date_strftime_format, filename='Initialmigration_products.log',level=logging.DEBUG)
+logging.basicConfig(format= message_format, datefmt= date_strftime_format, filename='Initialmigration_os_products.log',level=logging.DEBUG)
 
 sys.path.append("..")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "os_search.settings")
@@ -20,6 +20,8 @@ django.setup()
 from apps.models.style_detail_models import StyleModel
 
 from api.serializers.detail import StyleDetailSerializer
+from api.serializers.brand import BrandListSimpleSerializer
+
 
 from elasticsearch_dsl import Q
 from search.handler import SearchHandler
@@ -28,7 +30,7 @@ from handler import post_request_for_elastic
 f = open('nocategory.csv', 'w')
 writer = csv.writer(f)
 
-
+nobranddata =0
 def initialize_es():
     ##################################################
     # instead call this:
@@ -68,7 +70,7 @@ def main(time_from_str, time_to_str, action_type="update"):
         # ).order_by('created_date')
         # print("[main] _styles (create): %d" % _styles.count())
         _styles = StyleModel.objects.filter(
-            origin_date__gte=time_from, origin_date__lt=time_to
+            origin_date__gte=time_from, origin_date__lt=time_to,
         ).order_by('origin_date')
         # print("[main] _styles (create): %d" % _styles.count())
         logging.info("[main] _styles (create): %d" % _styles.count())
@@ -101,9 +103,15 @@ def main(time_from_str, time_to_str, action_type="update"):
     for idx, s in enumerate(_styles):
         try:
             #_hdr.create_or_update(s)
+            try:
+                BrandListSimpleSerializer(s.brand).data
+                logging.error("no brand data against {}".format(s.id))
+            except Exception as e:
+                nobranddata+=1
+                continue
             data = StyleDetailSerializer(s).data
             if data['category'] != "":
-                post_request_for_elastic(logging, 'stg-product',data)
+                post_request_for_elastic(logging, 'os-product',data)
                 logging.info("[CREATE/UPDATED][%s] %s\t%s\t%s" % (idx, s.id, s.created, getattr(s, 'updated', '-')))
             else:
                 writer.writerow(data['product_id'])
@@ -114,6 +122,7 @@ def main(time_from_str, time_to_str, action_type="update"):
             logging.warning("[CREATE/UPDATED][%s] %s\t%s\t%s\t %s(skipping)" % (idx, s.id, s.created, getattr(s, 'updated', '-'),str(e)))
             # logging.WARNING(str(e))
             pass
+    print(nobranddata)
 
 
 if __name__ == '__main__':
