@@ -89,7 +89,7 @@ else:
         'default' :
         {
             'ENGINE' : 'django.db.backends.mysql',
-            'NAME' : 'b2b',
+            'NAME' : 'AROAS',
             'USER' : 'mysql',
             'PASSWORD' : '123',
             "init_command": "SET foreign_key_checks = 0;"

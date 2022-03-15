@@ -16,6 +16,9 @@ class StyleDetailSerializer(serializers.ModelSerializer):
 
     product_id =  serializers.SerializerMethodField()
     style_name =  serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
+
     popular_point_7 =  serializers.SerializerMethodField()
     popular_point_14 =  serializers.SerializerMethodField()
     popular_point_30 =  serializers.SerializerMethodField()
@@ -48,10 +51,23 @@ class StyleDetailSerializer(serializers.ModelSerializer):
     brand_web_name = serializers.SerializerMethodField()
 
     category = serializers.SerializerMethodField()
+    sub_category = serializers.SerializerMethodField()
+
+    segment = serializers.SerializerMethodField()
     is_restock = serializers.SerializerMethodField()
     restock_date = serializers.SerializerMethodField()
     brand_category = serializers.SerializerMethodField()
     originality = serializers.SerializerMethodField()
+
+    def get_segment(self, obj):
+        try:
+
+            return getattr(obj.os_category_master, 'display_group', '')
+        except Exception as e:
+            return ''
+
+    def get_image(self,obj):
+        return "https://media.orangeshine.com/OSFile/OS/Pictures/{}".format(obj.picture1)
 
 
     def  get_five_star_percentage(self,obj):
@@ -169,47 +185,6 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         except Exception as e:
             return []
 
-    # def get_size_chart(self, obj):
-    #     if obj.is_shoes:
-    #         _size_chart = []
-    #         for s in obj.shoe_size.all():
-    #             _size_chart.append({
-    #                 'id':
-    #                 s.shoe_size.id,
-    #                 'name':
-    #                 s.shoe_size.name,
-    #                 'pack':
-    #                 s.shoe_size.shoe_size_chart,
-    #                 'size':
-    #                 s.shoe_size.shoe_size_chart_label,
-    #                 'size_chart':
-    #                 OrderedDict(
-    #                     zip(s.shoe_size.shoe_size_chart_label,
-    #                         s.shoe_size.shoe_size_chart)),
-    #                 'description':
-    #                 s.shoe_size.description,
-    #                 'total':
-    #                 sum(s.shoe_size.shoe_size_chart),
-    #             })
-    #     else:
-    #         try:
-    #             pack_quantity_list = obj.pack.qty_list
-    #         except:
-    #             pack_quantity_list = []
-    #         try:
-    #             size_chart_list = obj.size_chart.size_list
-    #         except:
-    #             size_chart_list = []
-
-    #         _size_chart = {
-    #             'pack': pack_quantity_list,
-    #             'size': size_chart_list,
-    #             'size_chart':
-    #             OrderedDict(zip(size_chart_list, pack_quantity_list)),
-    #             'total': sum(pack_quantity_list),
-    #         }
-    #     return _size_chart
-
     def get_is_pre_order(self, obj):
 
         return  obj.is_preorder,
@@ -221,8 +196,11 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         return  obj.is_plus,
 
     def get_brand_id(self, obj):
-        branddata= BrandListSimpleSerializer(obj.brand).data
-        return branddata['id']
+        try:
+            branddata= BrandListSimpleSerializer(obj.brand).data
+            return branddata['id']
+        except Exception as e:
+            return 0
 
     def get_brand_name(self, obj):
         try :
@@ -250,10 +228,18 @@ class StyleDetailSerializer(serializers.ModelSerializer):
         except Exception as e:
             return ""
 
-        
+    def get_sub_category(self, obj):
+        try : 
+            return obj.os_category_sub.name
+        except Exception as e:
+            return ""
 
     def get_brand_category(self, obj):
-       return  obj.brand_category.name if obj.brand_category.name else "",
+        try:
+           return obj.brand_category.name
+
+        except:
+            return  ""
                
        
 
@@ -276,6 +262,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
             'created_date',
             'modified_date',
             'pictures',
+            'image',
             'is_shoes',
             'price',
             'sale_price',
@@ -288,6 +275,7 @@ class StyleDetailSerializer(serializers.ModelSerializer):
             'brand_name',
             'brand_web_name',
             'category',
+            'sub_category',
             'brand_category',
             'originality',
             'is_restock',
@@ -301,7 +289,8 @@ class StyleDetailSerializer(serializers.ModelSerializer):
             'four_star_percentage',
             'three_star_percentage',
             'two_star_percentage',
-            'one_star_percentage'
+            'one_star_percentage',
+            'segment',
 
 
         )

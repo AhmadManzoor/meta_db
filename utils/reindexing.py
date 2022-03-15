@@ -72,7 +72,7 @@ def main(time_from_str, time_to_str, action_type="update"):
             origin_date__gte=time_from, origin_date__lt=time_to,
         ).order_by('origin_date')
         # print("[main] _styles (create): %d" % _styles.count())
-        logging.info("[main] _styles (create): %d" % _styles.count())
+        print("[main] _styles (create): %d" % _styles.count())
     else:
         # _styles = getattr(StyleModel.objects, site).filter(
         #    updated_date__gte=time_from, updated_date__lt=time_to
@@ -107,6 +107,7 @@ def main(time_from_str, time_to_str, action_type="update"):
                 logging.error("no brand data against {}".format(s.id))
                 continue
             data = StyleDetailSerializer(s).data
+            print(data)
             if data['category'] != "":
                 # post_request_for_elastic(logging, 'os-product',data)
                 logging.info("[CREATE/UPDATED][%s] %s\t%s\t%s" % (idx, s.id, s.created, getattr(s, 'updated', '-')))
@@ -141,7 +142,7 @@ if __name__ == '__main__':
     # 2021-07: 78604
     # 2021-08: 65549 (current)
     """
-    time_from = "20210801000000"
+    time_from = "20200801000000"
     time_to   = "20220201000000"
 
     action_type = "recreate"
